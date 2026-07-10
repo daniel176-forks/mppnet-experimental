@@ -1,4 +1,4 @@
-import { fadeIn, fadeOut, getRoomNameFromURL } from '../util/util';
+import { getRoomNameFromURL } from '../util/util';
 import { getClient, getPiano } from '../util/state';
 import { settings } from '../modules/settings/settings';
 import { openModal, closeModal } from '../util/modal';
@@ -16,6 +16,9 @@ interface MostPopularRoom {
 
 let mostPopularRoom: MostPopularRoom = { name: 'lobby', count: 0, limit: 20 };
 let roomBotCounts: { [roomId: string]: number } = {};
+type SortMode = 'popularity' | 'name' | 'capacity' | 'bots';
+let sortMode: SortMode = (localStorage.getItem('roomSortMode') as SortMode) || 'popularity';
+let lastRoomList: any[] | null = null;
 
 function getUserTag(user: any): { text: string; color: string } | null {
 	if (!user.tag) return null;
@@ -131,6 +134,19 @@ export function initRooms(): void {
 	updateBotCountsFromApi();
 	setInterval(updateBotCountsFromApi, 30000);
 
+	// Sort selector
+	const sortSelect = document.getElementById('room-sort') as HTMLSelectElement;
+	if (sortSelect) {
+		sortSelect.value = sortMode;
+		sortSelect.addEventListener('change', () => {
+			sortMode = sortSelect.value as SortMode;
+			localStorage.setItem('roomSortMode', sortMode);
+			if (lastRoomList) {
+				renderRooms(sortRooms(lastRoomList));
+			}
+		});
+	}
+
 	let gKnowsYouCanUseKeyboard = false;
 	if (localStorage && localStorage.knowsYouCanUseKeyboard)
 		gKnowsYouCanUseKeyboard = true;
@@ -183,101 +199,154 @@ export function initRooms(): void {
 		if (!channel.settings.visible) info.classList.add('not-visible');
 		else info.classList.remove('not-visible');
 	});
+	function sortRooms(rooms: any[]): any[] {
+		const sorted = [...rooms];
+		switch (sortMode) {
+			case 'popularity':
+				sorted.sort((a, b) => {
+					const botA = settings.showRoomBotCounts ? roomBotCounts[a._id] || 0 : 0;
+					const botB = settings.showRoomBotCounts ? roomBotCounts[b._id] || 0 : 0;
+					const humanA = a.count - botA;
+					const humanB = b.count - botB;
+					if (humanB !== humanA) return humanB - humanA;
+					return b.count - a.count;
+				});
+				break;
+			case 'name':
+				sorted.sort((a, b) => a._id.localeCompare(b._id));
+				break;
+			case 'capacity':
+				sorted.sort((a, b) => {
+					const capA = a.count / ('limit' in a.settings ? a.settings.limit : 20);
+					const capB = b.count / ('limit' in b.settings ? b.settings.limit : 20);
+					return capB - capA;
+				});
+				break;
+			case 'bots':
+				sorted.sort((a, b) => {
+					const botA = roomBotCounts[a._id] || 0;
+					const botB = roomBotCounts[b._id] || 0;
+					return botB - botA;
+				});
+				break;
+		}
+		return sorted;
+	}
+
+	function createRoomEntry(room: any): HTMLElement {
+		const info = document.createElement('div');
+		info.className = 'info';
+		if (room._id === mostPopularRoom.name) info.classList.add('cheez');
+		info.setAttribute('roomname', room._id);
+		info.setAttribute('roomid', String(room.id));
+		const botCount = settings.showRoomBotCounts
+			? roomBotCounts[room._id] || 0
+			: 0;
+		const botHtml =
+			botCount > 0
+				? '<span class="nametag" style="background:#55f;margin-left:4px;">' +
+					botCount +
+					' BOTS</span>'
+				: '';
+		let roomName = room._id;
+		if (botCount > 0 && roomName.length > 25)
+			roomName = roomName.substring(0, 22) + '...';
+		info.innerHTML =
+			room.count +
+			'/' +
+			('limit' in room.settings ? room.settings.limit : 20) +
+			' ' +
+			roomName +
+			botHtml;
+		if (room.count >= 10) info.style.backgroundColor = '#4a4';
+		else if (room.count >= 5) info.style.backgroundColor = '#494';
+		else if (room.count >= 3) info.style.backgroundColor = '#464';
+		if (room.settings.lobby) info.classList.add('lobby');
+		else info.classList.remove('lobby');
+		if (!room.settings.chat) info.classList.add('no-chat');
+		else info.classList.remove('no-chat');
+		if (room.settings.crownsolo) info.classList.add('crownsolo');
+		else info.classList.remove('crownsolo');
+		if (room.settings['no cussing']) info.classList.add('no-cussing');
+		else info.classList.remove('no-cussing');
+		if (!room.settings.visible) info.classList.add('not-visible');
+		else info.classList.remove('not-visible');
+		if (room.banned) info.classList.add('banned');
+		else info.classList.remove('banned');
+		return info;
+	}
+
+	function renderRooms(rooms: any[]): void {
+		const container = document.getElementById('room-list-entries') as HTMLElement;
+		if (!container) return;
+		container.innerHTML = '';
+		for (const room of rooms) container.appendChild(createRoomEntry(room));
+	}
+
+	function isRoomListOpen(): boolean {
+		const el = document.getElementById('room-list');
+		return !!el && el.style.display === 'block';
+	}
+
+	function upsertRoom(room: any): void {
+		if (!lastRoomList) return;
+		const idx = lastRoomList.findIndex(r => r.id === room.id);
+		if (idx >= 0) lastRoomList[idx] = room;
+		else lastRoomList.push(room);
+	}
+
 	gClient.on('ls', (ls: any) => {
-		const rooms = (ls.u as any[]).slice().sort((a, b) => {
-			const botA = settings.showRoomBotCounts ? roomBotCounts[a._id] || 0 : 0;
-			const botB = settings.showRoomBotCounts ? roomBotCounts[b._id] || 0 : 0;
-			const humanA = a.count - botA;
-			const humanB = b.count - botB;
-			if (humanB !== humanA) return humanB - humanA;
-			return b.count - a.count;
-		});
-		for (const room of rooms) {
-			let info = Array.from(
-				document.querySelectorAll('#room .more .info'),
-			).find(
-				el => el.getAttribute('roomid') === String(room.id),
-			) as HTMLElement | null;
-			if (!info) {
-				info = document.createElement('div');
-				info.className = 'info';
-				if (room._id === mostPopularRoom.name) info.classList.add('cheez');
-				info.setAttribute('roomname', room._id);
-				info.setAttribute('roomid', room.id);
-				document.querySelector('#room .more')!.appendChild(info);
+		if (ls.c) {
+			lastRoomList = ls.u;
+			if (isRoomListOpen()) renderRooms(sortRooms(ls.u as any[]));
+		} else if (ls.u) {
+			const room = ls.u;
+			upsertRoom(room);
+			if (isRoomListOpen()) {
+				const container = document.getElementById('room-list-entries') as HTMLElement;
+				if (!container) return;
+				const existing = Array.from(container.children).find(
+					el => el.getAttribute('roomid') === String(room.id),
+				);
+				if (existing) existing.remove();
+				const entry = createRoomEntry(room);
+				const sorted = sortRooms(lastRoomList);
+				const insertIdx = sorted.findIndex(r => r.id === room.id);
+				const ref = container.children[insertIdx] || null;
+				container.insertBefore(entry, ref);
 			}
-			info.setAttribute('translated', '');
-			const botCount = settings.showRoomBotCounts
-				? roomBotCounts[room._id] || 0
-				: 0;
-			const botHtml =
-				botCount > 0
-					? '<span class="nametag" style="background:#55f;margin-left:4px;">' +
-						botCount +
-						' BOTS</span>'
-					: '';
-			let roomName = room._id;
-			if (botCount > 0 && roomName.length > 25)
-				roomName = roomName.substring(0, 22) + '...';
-			info.innerHTML =
-				room.count +
-				'/' +
-				('limit' in room.settings ? room.settings.limit : 20) +
-				' ' +
-				roomName +
-				botHtml;
-			if (room.count >= 10) info.style.backgroundColor = '#4a4';
-			else if (room.count >= 5) info.style.backgroundColor = '#494';
-			else if (room.count >= 3) info.style.backgroundColor = '#464';
-			else info.style.color = '';
-			if (room.settings.lobby) info.classList.add('lobby');
-			else info.classList.remove('lobby');
-			if (!room.settings.chat) info.classList.add('no-chat');
-			else info.classList.remove('no-chat');
-			if (room.settings.crownsolo) info.classList.add('crownsolo');
-			else info.classList.remove('crownsolo');
-			if (room.settings['no cussing']) info.classList.add('no-cussing');
-			else info.classList.remove('no-cussing');
-			if (!room.settings.visible) info.classList.add('not-visible');
-			else info.classList.remove('not-visible');
-			if (room.banned) info.classList.add('banned');
-			else info.classList.remove('banned');
 		}
 	});
 
-	document.getElementById('room')!.addEventListener('click', (evt: any) => {
-		evt.stopPropagation();
+	// Room list modal
+	document.getElementById('room')!.addEventListener('click', () => {
+		document.querySelectorAll('#room-list-entries .info').forEach(el => el.remove());
+		openModal('#room-list');
+		gClient.sendArray([{ m: '+ls' }]);
+	});
+
+	// Delegate clicks inside room-list entries
+	document.getElementById('room-list')?.addEventListener('click', (evt: any) => {
 		const target = evt.target as HTMLElement;
-		const more = document.querySelector('#room .more') as HTMLElement;
-		if (target.classList.contains('info') && target.closest('.more') !== null) {
-			fadeOut(more, 250);
-			const selected_name = target.getAttribute('roomname');
-			if (selected_name !== null) {
-				if (!evt.ctrlKey) changeRoom(gClient, selected_name, 'right');
-				else window.open(`?c=${selected_name}`);
-			}
+		const info = target.closest('.info') as HTMLElement;
+		if (info) {
+			const roomName = info.getAttribute('roomname');
+			if (!roomName) return;
+			closeModal();
+			gClient.sendArray([{ m: '-ls' }]);
+			if (!evt.ctrlKey) changeRoom(gClient, roomName, 'right');
+			else window.open(`?c=${roomName}`);
 			return;
-		} else if (target.classList.contains('new')) {
+		}
+		if (target.closest('.new')) {
+			closeModal();
+			gClient.sendArray([{ m: '-ls' }]);
 			openModal('#new-room', 'input[name=name]');
 		}
-
-		const doc_click = (evt2: any) => {
-			if ((evt2.target as HTMLElement).closest('#room')) return;
-			document.removeEventListener('mousedown', doc_click);
-			fadeOut(more, 250);
-			gClient.sendArray([{ m: '-ls' }]);
-    };
-
-		if (more.style.display == "block") {
-      document.removeEventListener('mousedown', doc_click);
-     	fadeOut(more, 250);
-      gClient.sendArray([{ m: '-ls' }]);
-      return;
-    }
-		document.addEventListener('mousedown', doc_click);
-		document.querySelectorAll('#room .more .info').forEach(el => el.remove());
-		fadeIn(more, 0);
-		gClient.sendArray([{ m: '+ls' }]);
+	});
+	document.getElementById('room-list-close')?.addEventListener('click', () => {
+		closeModal();
+		gClient.sendArray([{ m: '-ls' }]);
 	});
 
 	window.addEventListener('popstate', (evt: any) => {

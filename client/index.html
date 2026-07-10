@@ -118,9 +118,6 @@
       <div id="room">
         <div class="info"></div>
         <div class="expand"></div>
-        <div class="more">
-          <div class="new">New Room...</div>
-        </div>
       </div>
       <div class="buttons" id="buttons">
         <div id="new-room-btn" class="ugly-button">New Room...</div>
@@ -278,28 +275,34 @@
         <div id="client-settings-content"></div>
         <div id="client-settings-ok-btn" class="client-settings-button">Ok</div>
       </div>
+      <div id="room-select" class="dialog" style="display:none;">
+        <p id="room-select-title">Select Room</p>
+        <select id="room-select-dropdown" style="width:100%;"></select>
+        <button id="room-select-go">Go</button>
+        <button id="room-select-cancel">Cancel</button>
+      </div>
+      <div id="favorites" class="dialog" style="display:none;">
+        <p>★ Favorites</p>
+        <div id="favorites-list"></div>
+        <button id="favorites-close">Close</button>
+      </div>
+      <div id="room-list" class="dialog" style="display:none;">
+        <p>Rooms</p>
+        <div class="room-sort-row">
+          <span>Sort:</span>
+          <select id="room-sort">
+            <option value="popularity">Popularity</option>
+            <option value="name">Name</option>
+            <option value="capacity">Capacity</option>
+            <option value="bots">Bot count</option>
+          </select>
+          <span class="new">+ New Room</span>
+        </div>
+        <div id="room-list-entries"></div>
+        <div id="room-list-close">Close</div>
+      </div>
+
     </div>
-  </div>
-
-  <div id="room-select" class="dialog" style="display:none;">
-    <p id="room-select-title">Select Room</p>
-    <select id="room-select-dropdown" style="width:100%;"></select>
-    <button id="room-select-go">Go</button>
-    <button id="room-select-cancel">Cancel</button>
-  </div>
-
-  <div id="favorites" class="dialog" style="display:none;">
-    <p>★ Favorites</p>
-    <div id="favorites-list"></div>
-    <button id="favorites-close">Close</button>
-  </div>
-
-  <div id="hats" class="dialog" style="display:none;">
-    <p>MPP Hats</p>
-    <p><label>Select hat: &nbsp;<select id="hat-selector"></select></label></p>
-    <p><label>Preview: &nbsp;<img id="hat-selector-preview" src="" style="width:32px;height:32px;"></label></p>
-    <button class="clear-cache ugly-button" style="float:left;">Clear Cache</button>
-    <button class="submit">SUBMIT</button>
   </div>
 
   <div id="overlay">

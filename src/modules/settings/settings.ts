@@ -61,7 +61,7 @@ export class Settings {
 		this.snowflakes =
 			new Date().getMonth() === 11 && localStorage.snowflakes !== 'false';
 		this.showRoomBotCounts = localStorage.showRoomBotCounts !== 'false';
-		this.showOverlay = localStorage.showOverlay !== 'false';
+		this.showOverlay = localStorage.showOverlay === 'true';
 		this.disableMIDIDrumChannel = localStorage.disableMIDIDrumChannel
 			? localStorage.disableMIDIDrumChannel === 'true'
 			: true;

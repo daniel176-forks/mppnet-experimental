@@ -1,5 +1,12 @@
+@import url('https://fonts.cdnfonts.com/css/dejavu-sans');
+
+body, html {
+  font-family: 'DejaVu Sans', sans-serif;
+}
+
 * {
   image-rendering: pixelated;
+  
 }
 
 * {
@@ -18,10 +25,6 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font:
-    20pt verdana,
-    "DejaVu Sans",
-    sans-serif;
   color: #fff;
   text-shadow: #444 1px 1px;
 }
@@ -580,36 +583,139 @@ input[type="range"]:hover {
   background: #777 url(/arrow.png) no-repeat center 0;
 }
 
-#room .more {
-  display: none;
-  position: absolute;
-  bottom: 100%;
-  left: -1px;
-  width: 100%;
-  overflow: hidden;
-  overflow-y: scroll;
-  background: #444;
-  border: 1px solid #ccc;
-  max-height: 600px;
+#room-list {
+  width: 520px;
+  height: 560px !important;
+  margin-top: -280px !important;
+  overflow: hidden !important;
+  font-size: 13px;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+  left: 220px;
 }
 
-#room .more>div {
+#room-list > p {
+  font-size: 15px !important;
+  margin: 6px 10px !important;
+  color: #ddd;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+#room-list .room-sort-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: #2a2a2a;
+  border-bottom: 1px solid #444;
+  gap: 6px;
+}
+
+#room-list .room-sort-row span {
+  color: #999;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+#room-list .room-sort-row select {
+  font-size: 11px;
+  background: #1e1e1e;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+#room-list .room-sort-row select:focus {
+  border-color: #48a;
+}
+
+#room-list .room-sort-row .new {
+  margin-left: auto;
+  padding: 3px 12px;
+  background: #2d5a2d;
+  cursor: pointer;
+  font-size: 11px;
+  border: 1px solid #3a7a3a;
+  border-radius: 4px;
+  color: #afa;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+#room-list .room-sort-row .new:hover {
+  background: #3a7a3a;
+}
+
+#room-list #room-list-entries {
+  overflow-y: auto;
+  max-height: 420px;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #222;
+}
+
+#room-list #room-list-entries::-webkit-scrollbar {
+  width: 6px;
+}
+
+#room-list #room-list-entries::-webkit-scrollbar-track {
+  background: #222;
+}
+
+#room-list #room-list-entries::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+#room-list #room-list-entries .info {
   margin: 0;
-  padding: 3px 6px 0 6px;
+  padding: 1px 10px;
   width: 100%;
-  height: 20px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 26px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.1s;
 }
 
-#room .more .info:hover {
-  background: #666;
+#room-list #room-list-entries .info:last-child {
+  border-bottom: none;
 }
 
-#room .more .new {
-  background: #111;
+#room-list #room-list-entries .info:hover {
+  background: #3a3a3a !important;
 }
 
-#room .more .new:hover {
+#room-list #room-list-entries .info.cheez {
+  outline: none;
+  border-left: 3px solid gold;
+  background: #3a3a1a;
+}
+
+#room-list #room-list-close {
+  width: 100%;
+  padding: 6px;
+  font-size: 13px;
   background: #333;
+  color: #ccc;
+  border: none;
+  border-top: 1px solid #555;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#room-list #room-list-close:hover {
+  background: #444;
+  color: #fff;
 }
 
 .ugly-button {
@@ -933,7 +1039,7 @@ input[type="range"]:hover {
 #modal .bg {
   width: 100%;
   height: 100%;
-  background: #48a;
+  background: rgb(24, 24, 24);
   opacity: 0.5;
   position: absolute;
   left: 0;
@@ -949,7 +1055,7 @@ input[type="range"]:hover {
 }
 
 .dialog {
-  background: #222;
+  background: #111;
   width: 400px;
   height: 100px;
   position: fixed;
@@ -958,14 +1064,14 @@ input[type="range"]:hover {
   margin-left: -200px;
   margin-top: -50px;
   padding: 10px;
-  border: 1px solid #555;
+  border: 1px solid #aaa;
   overflow: hidden;
   border-radius: 4px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-  box-shadow: 0 0 8px #000;
-  -webkit-box-shadow: 0 0 8px #000;
-  -moz-box-shadow: 0 0 8px #000;
+  box-shadow: 0 0 60px #000;
+  -webkit-box-shadow: 0 0 60px #000;
+  -moz-box-shadow: 0 0 60px #000;
 }
 
 .dialog p {
@@ -1162,6 +1268,16 @@ input[type="range"]:hover {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   cursor: pointer;
+}
+
+#chat li .chat-tag {
+  font-size: 10px;
+  padding: 2px 4px;
+  margin-right: 4px;
+  border-radius: 2px;
+  text-align: center;
+  line-height: normal;
+  display: inline;
 }
 
 #chat li .receivedDm {
@@ -1968,4 +2084,8 @@ code {
   cursor: pointer;
   font-size: 10px;
   line-height: 7px;
+}
+
+.mpp-hats-button {
+  display: none !important;
 }

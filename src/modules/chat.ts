@@ -28,6 +28,17 @@ import {
 import type { ChatMessage } from '../types';
 import { i18next } from '../util/translations';
 
+function setTag(el: HTMLElement, participant: any): void {
+	const tag = participant?.tag;
+	if (!tag) { el.style.display = 'none'; return; }
+	const tagText = typeof tag === 'object' ? tag.text : tag;
+	const tagColor = typeof tag === 'object' ? tag.color : null;
+	if (!tagText) { el.style.display = 'none'; return; }
+	el.style.display = '';
+	el.textContent = tagText;
+	el.style.backgroundColor = tagColor || '#777';
+}
+
 export interface Chat {
 	isShown: boolean;
 
@@ -251,6 +262,9 @@ export function initChat(): Chat {
 					s.className = 'id';
 					li.appendChild(s);
 				}
+				const tagSpan = document.createElement('span');
+				tagSpan.className = 'chat-tag';
+				li.appendChild(tagSpan);
 				const nameSpan = document.createElement('span');
 				nameSpan.className = 'name';
 				li.appendChild(nameSpan);
@@ -262,6 +276,9 @@ export function initChat(): Chat {
 					s.className = 'id2';
 					li.appendChild(s);
 				}
+				const tag2Span = document.createElement('span');
+				tag2Span.className = 'chat-tag';
+				li.appendChild(tag2Span);
 				const name2Span = document.createElement('span');
 				name2Span.className = 'name2';
 				li.appendChild(name2Span);
@@ -274,6 +291,9 @@ export function initChat(): Chat {
 					s.className = 'id';
 					li.appendChild(s);
 				}
+				const tagSpan = document.createElement('span');
+				tagSpan.className = 'chat-tag';
+				li.appendChild(tagSpan);
 				const nameSpan = document.createElement('span');
 				nameSpan.className = 'name';
 				li.appendChild(nameSpan);
@@ -424,6 +444,7 @@ export function initChat(): Chat {
 						});
 					(li.querySelector('.name') as HTMLElement).textContent =
 						msg.recipient.name + ':';
+					setTag(li.querySelector('.chat-tag') as HTMLElement, msg.recipient);
 					if (settings.showChatTooltips) li.title = msg.recipient._id;
 				} else if (msg.recipient._id === gClient.user!._id) {
 					if (!settings.noChatColors)
@@ -432,6 +453,7 @@ export function initChat(): Chat {
 						});
 					(li.querySelector('.name') as HTMLElement).textContent =
 						msg.sender.name + ':';
+					setTag(li.querySelector('.chat-tag') as HTMLElement, msg.sender);
 					if (settings.showChatTooltips) li.title = msg.sender._id;
 				} else {
 					if (!settings.noChatColors)
@@ -446,6 +468,8 @@ export function initChat(): Chat {
 						msg.sender.name;
 					(li.querySelector('.name2') as HTMLElement).textContent =
 						msg.recipient.name + ':';
+					setTag(li.querySelector('.chat-tag') as HTMLElement, msg.sender);
+					setTag(li.querySelectorAll('.chat-tag')[1] as HTMLElement, msg.recipient);
 					if (settings.showIdsInChat)
 						(li.querySelector('.id') as HTMLElement).textContent =
 							msg.sender._id.substring(0, 6);
@@ -465,6 +489,7 @@ export function initChat(): Chat {
 					});
 				(li.querySelector('.name') as HTMLElement).textContent =
 					msg.p.name + ':';
+				setTag(li.querySelector('.chat-tag') as HTMLElement, msg.p);
 				if (!settings.noChatColors)
 					Object.assign((li.querySelector('.message') as HTMLElement).style, {
 						color: msg.p.color || 'white',

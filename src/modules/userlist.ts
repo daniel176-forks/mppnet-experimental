@@ -1,4 +1,5 @@
 import { settings } from './settings/settings';
+import { openModal, closeModal } from '../util/modal';
 
 const staffTags = ['ADMIN', 'MOD', 'TRIAL_MOD', 'OWNER', 'DEV', 'BOT'];
 
@@ -46,17 +47,11 @@ function showRoomModal(userGroup: any[]): void {
 			dropdown.appendChild(opt);
 		});
 	}
-	const modal = document.getElementById('room-select');
-	if (modal) modal.style.display = 'block';
-	const bg = document.getElementById('modal');
-	if (bg) bg.style.display = 'block';
+	openModal('#room-select');
 }
 
 function closeRoomModal(): void {
-	const modal = document.getElementById('modal');
-	if (modal) modal.style.display = 'none';
-	const rs = document.getElementById('room-select');
-	if (rs) rs.style.display = 'none';
+	closeModal();
 }
 
 function updateUserList(): void {
@@ -509,7 +504,6 @@ export function initUserlist(): void {
 		}
 	});
 	document.getElementById('room-select-cancel')?.addEventListener('click', closeRoomModal);
-	document.querySelector('#modal .bg')?.addEventListener('click', closeRoomModal);
 
 	// API selector
 	const apiSelector = document.querySelector('select[name=apiSelection]') as HTMLSelectElement;
@@ -559,20 +553,43 @@ export function initUserlist(): void {
 	// Favorites
 	document.getElementById('favorites-btn')?.addEventListener('click', () => {
 		renderFavorites();
-		const modal = document.getElementById('modal');
-		if (modal) modal.style.display = 'block';
-		document.querySelectorAll('#modal #modals > *').forEach(el => (el as HTMLElement).style.display = 'none');
-		const favDialog = document.getElementById('favorites');
-		if (favDialog) favDialog.style.display = 'block';
+		openModal('#favorites');
 	});
-	document.getElementById('favorites-close')?.addEventListener('click', () => {
-		const modal = document.getElementById('modal');
-		if (modal) modal.style.display = 'none';
-		document.querySelectorAll('#modal #modals > *').forEach(el => (el as HTMLElement).style.display = 'none');
-	});
-	document.querySelector('#modal .bg')?.addEventListener('click', () => {
-		const modal = document.getElementById('modal');
-		if (modal) modal.style.display = 'none';
-		document.querySelectorAll('#modal #modals > *').forEach(el => (el as HTMLElement).style.display = 'none');
+	document.getElementById('favorites-close')?.addEventListener('click', closeModal);
+	document.querySelector('#modal .bg')?.addEventListener('click', closeModal);
+
+	// Hats — trigger the modal created by hats.js userscript
+	document.getElementById('hats-btn')?.addEventListener('click', () => {
+		const hatsDialog = document.querySelector('#modal #modals #hats') as HTMLElement;
+		if (hatsDialog) {
+			const grid = document.getElementById('hat-grid') as HTMLElement;
+			if (grid && !grid.hasChildNodes()) {
+				grid.innerHTML =
+					'<div class="hat-tile" data-hat-id="">' +
+					'<div class="hat-tile-img" style="width:32px;height:32px;margin:0 auto;opacity:0.3;font-size:20px;line-height:32px;text-align:center;">✕</div>' +
+					'<div class="hat-tile-name">None</div></div>';
+				const api = (window as any).MPP?.hats;
+				if (api) {
+					api.getHatList().then((list: Record<string, string>) => {
+						for (const id of Object.keys(list)) {
+							grid.innerHTML +=
+								'<div class="hat-tile" data-hat-id="' +
+								id +
+								'">' +
+								'<img class="hat-tile-img" src="' +
+								api.getHatBaseURL(id) +
+								'" width="32" height="32">' +
+								'<div class="hat-tile-name">' +
+								list[id] +
+								'</div></div>';
+						}
+						const current = api.getCurrentHat();
+						const sel = grid.querySelector('.hat-tile[data-hat-id="' + current + '"]');
+						if (sel) sel.classList.add('selected');
+					});
+				}
+			}
+			openModal('#hats');
+		}
 	});
 }
