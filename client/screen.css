@@ -1164,11 +1164,23 @@ input[type="range"]:hover {
 }
 
 .client-settings-tablink {
-  font-size: 16px;
+  font-size: 13px;
+  height: 12px;
+  width: auto;
+  padding: 4px 10px;
+  border-radius: 4px 4px 0 0;
+  border-bottom: none;
+  background: #1a1a1a;
+  transition: background 0.15s;
+}
+
+.client-settings-tablink:hover {
+  background: #2a2a2a;
 }
 
 .client-settings-tablink.active {
-  background-color: rgb(69, 69, 69);
+  background: #333;
+  font-weight: 700;
 }
 
 .client-settings-button {
@@ -1185,9 +1197,10 @@ input[type="range"]:hover {
   text-align: center;
 }
 
-/* .client-settings-button:hover {
-    background: #222;
-} */
+.client-settings-button:hover {
+  background: #2a2a2a;
+  border-color: #666;
+}
 
 .client-settings-button.stuck {
   background: rgba(204, 187, 170, 0.35);
@@ -1196,6 +1209,51 @@ input[type="range"]:hover {
 #client-settings-content {
   float: unset !important;
   font-size: 12px;
+  padding: 8px;
+  border-top: 1px solid #333;
+  margin-top: 4px;
+}
+
+#client-settings-content div {
+  width:95%;
+}
+
+#client-settings-content label {
+  width:100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.1s;
+}
+
+#client-settings-content label:last-child {
+  border-bottom: none;
+}
+
+#client-settings-content label:hover {
+  background: #2a2a2a;
+}
+
+#client-settings-content br {
+  display: none;
+}
+
+#client-settings-content input[type="checkbox"] {
+  vertical-align: middle;
+}
+
+#client-settings-content select.setting {
+  margin-top: 4px;
+  background: #1a1a1a;
+  color: inherit;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 3px;
 }
 
 .logged-in-text {
