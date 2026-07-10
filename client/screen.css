@@ -1167,8 +1167,8 @@ input[type="range"]:hover {
   font-size: 13px;
   height: 12px;
   width: auto;
-  padding: 4px 10px;
-  border-radius: 4px 4px 0 0;
+  padding: 5px 20px;
+  margin-top:-5px;
   border-bottom: none;
   background: #1a1a1a;
   transition: background 0.15s;
