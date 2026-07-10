@@ -1,5 +1,5 @@
 import { Color } from '../libs/Color';
-import { getClient } from '../util/state';
+import { getClient, state } from '../util/state';
 import { settings } from './settings/settings';
 
 const DEFAULT_COLOR = '#220022';
@@ -31,8 +31,10 @@ export function initBackground(): void {
 		if (ch.ch.settings) {
 			if (ch.ch.settings.color) {
 				setBackgroundColor(ch.ch.settings.color, ch.ch.settings.color2);
+				if (state.piano) state.piano.renderer.color = ch.ch.settings.color;
 			} else {
 				setBackgroundColorToDefault();
+				if (state.piano) state.piano.renderer.color = '#ecfaed';
 			}
 		}
 	});

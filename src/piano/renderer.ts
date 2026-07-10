@@ -1,5 +1,5 @@
 import { Rect } from '../libs/Rect';
-import { DEFAULT_VELOCITY, BASIC_PIANO_SCALES } from '../util/constants';
+import { DEFAULT_VELOCITY } from '../util/constants';
 import { settings } from '../modules/settings/settings';
 import { press, release } from '../util/actions';
 import type { Piano as PianoInterface } from '../util/state';
@@ -8,6 +8,7 @@ export class Renderer {
 	piano!: PianoInterface;
 	width: number = 0;
 	height: number = 0;
+	color: string = '#ecfaed';
 
 	init(piano: PianoInterface): this {
 		this.piano = piano;
@@ -54,14 +55,13 @@ export class CanvasRenderer extends Renderer {
 	blackBlipHeight: number = 0;
 	blackBlipX: number = 0;
 	blackBlipY: number = 0;
-	whiteKeyRender!: HTMLCanvasElement;
-	blackKeyRender!: HTMLCanvasElement;
 	shadowRender: HTMLCanvasElement[] = [];
-	noteLyrics: any = {};
+
 	init(piano: PianoInterface): this {
 		this.canvas = document.createElement('canvas');
 		this.ctx = this.canvas.getContext('2d')!;
 		piano.rootElement.appendChild(this.canvas);
+
 		super.init(piano);
 
 		const self = this;
@@ -108,6 +108,7 @@ export class CanvasRenderer extends Renderer {
 		});
 		return this;
 	}
+
 	resize(width?: number, height?: number): void {
 		super.resize(width, height);
 		if (this.width < 52 * 2) this.width = 52 * 2;
@@ -120,98 +121,30 @@ export class CanvasRenderer extends Renderer {
 
 		this.whiteKeyWidth = Math.floor(this.width / 52);
 		this.whiteKeyHeight = Math.floor(this.height * 0.9);
-		this.blackKeyWidth = Math.floor(this.whiteKeyWidth * 0.75);
+		this.blackKeyWidth = Math.floor(this.whiteKeyWidth * 0.75) - 1;
 		this.blackKeyHeight = Math.floor(this.height * 0.5);
 		this.blackKeyOffset = Math.floor(
 			this.whiteKeyWidth - this.blackKeyWidth / 2,
 		);
 		this.keyMovement = Math.floor(this.whiteKeyHeight * 0.015);
 
-		this.whiteBlipWidth = Math.floor(this.whiteKeyWidth * 0.7);
-		this.whiteBlipHeight = Math.floor(this.whiteBlipWidth * 0.8);
+		this.whiteBlipWidth = Math.floor(this.whiteKeyWidth - 3);
+		this.whiteBlipHeight = Math.floor(this.whiteBlipWidth * 0.7);
 		this.whiteBlipX = Math.floor(
 			(this.whiteKeyWidth - this.whiteBlipWidth) / 2,
 		);
 		this.whiteBlipY = Math.floor(
-			this.whiteKeyHeight - this.whiteBlipHeight * 1.2,
+			this.whiteKeyHeight - this.whiteBlipHeight - 1,
 		);
-		this.blackBlipWidth = Math.floor(this.blackKeyWidth * 0.7);
-		this.blackBlipHeight = Math.floor(this.blackBlipWidth * 0.8);
+		this.blackBlipWidth = Math.floor(this.blackKeyWidth - 2);
+		this.blackBlipHeight = Math.floor(this.blackBlipWidth * 0.7);
 		this.blackBlipY = Math.floor(
-			this.blackKeyHeight - this.blackBlipHeight * 1.2,
+			this.blackKeyHeight - this.blackBlipHeight - 1,
 		);
 		this.blackBlipX = Math.floor(
 			(this.blackKeyWidth - this.blackBlipWidth) / 2,
 		);
 
-		this.prerenderKeys();
-		this.prerenderShadows();
-		this.updateKeyRects();
-	}
-
-	private prerenderKeys(): void {
-		this.whiteKeyRender = document.createElement('canvas');
-		this.whiteKeyRender.width = this.whiteKeyWidth;
-		this.whiteKeyRender.height = this.height + 10;
-		let ctx = this.whiteKeyRender.getContext('2d')!;
-		if (ctx.createLinearGradient) {
-			const gradient = ctx.createLinearGradient(0, 0, 0, this.whiteKeyHeight);
-			gradient.addColorStop(0, '#eee');
-			gradient.addColorStop(0.75, '#fff');
-			gradient.addColorStop(1, '#dad4d4');
-			ctx.fillStyle = gradient;
-		} else {
-			ctx.fillStyle = '#fff';
-		}
-		ctx.strokeStyle = '#000';
-		ctx.lineJoin = 'round';
-		ctx.lineCap = 'round';
-		ctx.lineWidth = 10;
-		ctx.strokeRect(
-			ctx.lineWidth / 2,
-			ctx.lineWidth / 2,
-			this.whiteKeyWidth - ctx.lineWidth,
-			this.whiteKeyHeight - ctx.lineWidth,
-		);
-		ctx.lineWidth = 4;
-		ctx.fillRect(
-			ctx.lineWidth / 2,
-			ctx.lineWidth / 2,
-			this.whiteKeyWidth - ctx.lineWidth,
-			this.whiteKeyHeight - ctx.lineWidth,
-		);
-
-		this.blackKeyRender = document.createElement('canvas');
-		this.blackKeyRender.width = this.blackKeyWidth + 10;
-		this.blackKeyRender.height = this.blackKeyHeight + 10;
-		ctx = this.blackKeyRender.getContext('2d')!;
-		if (ctx.createLinearGradient) {
-			const gradient = ctx.createLinearGradient(0, 0, 0, this.blackKeyHeight);
-			gradient.addColorStop(0, '#000');
-			gradient.addColorStop(1, '#444');
-			ctx.fillStyle = gradient;
-		} else {
-			ctx.fillStyle = '#000';
-		}
-		ctx.strokeStyle = '#222';
-		ctx.lineJoin = 'round';
-		ctx.lineCap = 'round';
-		ctx.lineWidth = 8;
-		ctx.strokeRect(
-			ctx.lineWidth / 2,
-			ctx.lineWidth / 2,
-			this.blackKeyWidth - ctx.lineWidth,
-			this.blackKeyHeight - ctx.lineWidth,
-		);
-		ctx.lineWidth = 4;
-		ctx.fillRect(
-			ctx.lineWidth / 2,
-			ctx.lineWidth / 2,
-			this.blackKeyWidth - ctx.lineWidth,
-			this.blackKeyHeight - ctx.lineWidth,
-		);
-	}
-	private prerenderShadows(): void {
 		this.shadowRender = [];
 		const y = -this.canvas.height * 2;
 		for (let j = 0; j < 2; j++) {
@@ -221,8 +154,8 @@ export class CanvasRenderer extends Renderer {
 			canvas.height = this.canvas.height;
 			const ctx = canvas.getContext('2d')!;
 			const sharp = j ? true : false;
-			ctx.lineJoin = 'round';
-			ctx.lineCap = 'round';
+			ctx.lineJoin = 'miter';
+			ctx.lineCap = 'butt';
 			ctx.lineWidth = 1;
 			ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
 			ctx.shadowBlur = this.keyMovement * 3;
@@ -256,9 +189,6 @@ export class CanvasRenderer extends Renderer {
 				}
 			}
 		}
-	}
-
-	private updateKeyRects(): void {
 		for (const i in this.piano.keys) {
 			if (!this.piano.keys.hasOwnProperty(i)) continue;
 			const key = this.piano.keys[i];
@@ -287,6 +217,7 @@ export class CanvasRenderer extends Renderer {
 		key.timePlayed = Date.now();
 		key.blips.push({ time: key.timePlayed, color });
 	}
+
 	redraw(): void {
 		const now = Date.now();
 		const timeLoadedEnd = now - 1000;
@@ -307,11 +238,11 @@ export class CanvasRenderer extends Renderer {
 				if (!key.loaded) {
 					this.ctx.globalAlpha = 0.2;
 				} else if (key.timeLoaded > timeLoadedEnd) {
-					this.ctx.globalAlpha = ((now - key.timeLoaded) / 1000) * 0.8 + 0.2;
+					this.ctx.globalAlpha =
+						((now - key.timeLoaded) / 1000) * 0.8 + 0.2;
 				} else {
 					this.ctx.globalAlpha = 1.0;
 				}
-
 				let y = 0;
 				if (key.timePlayed > timePlayedEnd) {
 					y = Math.floor(
@@ -324,65 +255,20 @@ export class CanvasRenderer extends Renderer {
 						? this.blackKeyOffset + this.whiteKeyWidth * key.spatial
 						: this.whiteKeyWidth * key.spatial,
 				);
-				const image = key.sharp ? this.blackKeyRender : this.whiteKeyRender;
-				this.ctx.drawImage(image, x, y);
-
-				let keyName = key.baseNote[0].toUpperCase();
-				if (sharp) keyName += '#';
-				keyName += key.octave + 1;
-
-				if (settings.showPianoNotes) {
-					this.ctx.font = `${(key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2}px Arial`;
-					this.ctx.fillStyle = key.sharp ? 'white' : 'black';
-					this.ctx.textAlign = 'center';
-					if (keyName.includes('#')) {
-						this.ctx.fillText(
-							keyName,
-							x + (key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2,
-							y +
-								(key.sharp ? this.blackKeyHeight : this.whiteKeyHeight) -
-								30 -
-								this.ctx.lineWidth,
-						);
-					}
-					keyName = keyName
-						.replace('C#', 'D♭')
-						.replace('D#', 'E♭')
-						.replace('F#', 'G♭')
-						.replace('G#', 'A♭')
-						.replace('A#', 'B♭');
-					this.ctx.fillText(
-						keyName,
-						x + (key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2,
-						y +
-							(key.sharp ? this.blackKeyHeight : this.whiteKeyHeight) -
-							10 -
-							this.ctx.lineWidth,
-					);
-				}
-
-				const highlightScale =
-					BASIC_PIANO_SCALES[settings.highlightScaleNotes || ''];
-				if (highlightScale && key.loaded) {
-					keyName = keyName
-						.replace('C#', 'D♭')
-						.replace('D#', 'E♭')
-						.replace('F#', 'G♭')
-						.replace('G#', 'A♭')
-						.replace('A#', 'B♭');
-					const keynameNoOctave = keyName.slice(0, -1);
-					if (highlightScale.includes(keynameNoOctave)) {
-						const prev = this.ctx.globalAlpha;
-						this.ctx.globalAlpha = 0.3;
-						this.ctx.fillStyle = '#0f0';
-						if (key.sharp)
-							this.ctx.fillRect(x, y, this.blackKeyWidth, this.blackKeyHeight);
-						else
-							this.ctx.fillRect(x, y, this.whiteKeyWidth, this.whiteKeyHeight);
-						this.ctx.globalAlpha = prev;
-					}
-				}
-
+				const num = parseInt(this.color.replace('#', ''), 16);
+				const r = Math.min(((num >> 16) & 0xff) + 0x33, 0xff);
+				const g = Math.min(((num >> 8) & 0xff) + 0x33, 0xff);
+				const b = Math.min((num & 0xff) + 0x33, 0xff);
+				const clr = (r << 16) | (g << 8) | b;
+				this.ctx.fillStyle = sharp
+					? '#222222'
+					: '#' + ('000000' + clr.toString(16)).slice(-6);
+				this.ctx.fillRect(
+					x,
+					y,
+					sharp ? this.blackKeyWidth : this.whiteKeyWidth - 1,
+					sharp ? this.blackKeyHeight : this.whiteKeyHeight,
+				);
 				if (key.blips.length) {
 					const alpha = this.ctx.globalAlpha;
 					let w: number, h: number;
@@ -401,19 +287,20 @@ export class CanvasRenderer extends Renderer {
 						const blip = key.blips[b];
 						if (blip.time > timeBlipEnd) {
 							this.ctx.fillStyle = blip.color;
-							this.ctx.globalAlpha = alpha - ((now - blip.time) / 1000) * alpha;
+							this.ctx.globalAlpha = alpha - ((now - blip.time) / 1000);
 							this.ctx.fillRect(x, y, w, h);
 						} else {
 							key.blips.splice(b, 1);
 							--b;
 						}
-						y -= Math.floor(h * 1.1);
+						y -= h + 1;
 					}
 				}
 			}
 		}
 		this.ctx.restore();
 	}
+
 	getHit(x: number, y: number): { key: any; v: number } | null {
 		for (let j = 0; j < 2; j++) {
 			const sharp = j ? false : true;
