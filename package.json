@@ -10,9 +10,11 @@
     "typescript": "^5.4.0"
   },
   "scripts": {
+    "install-dep": "bun install",
     "build": "bun run build:main",
     "build:main": "bun build src/main.ts --outfile=client/script.js --outdir=client/ --entry-naming=[dir]/script.[ext] --sourcemap=linked --format=iife --target=browser",
     "build:min": "bun run build:main -- --minify",
+    "dev": "bun run build:main && npx serve client/",
     "typecheck": "tsc --project tsconfig.json"
   },
   "dependencies": {
