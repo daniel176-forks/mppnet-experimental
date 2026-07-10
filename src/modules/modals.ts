@@ -6,9 +6,9 @@ import { settings } from "./settings/settings";
 import { i18next } from "util/translations";
 
 export function initModals() {
-  const gClient = getClient();
+	const gClient = getClient();
 
-  (() => {
+	(() => {
 		function submit() {
 			const msg: any = { m: 'siteban' };
 			msg.id = (
@@ -192,7 +192,7 @@ export function initModals() {
 					),
 				);
 			});
-  })();
+	})();
 
 	// New room dialog
 	(() => {
@@ -249,6 +249,47 @@ export function initModals() {
 
 	// Rename dialog
 	(() => {
+		
+		// Name Preview
+		function updatePreview() {
+			if (!gClient.user) return;
+			(
+				document.querySelector('#namediv-preview .nametext') as HTMLElement
+			).innerText = gClient.user.name;
+			(
+				document.querySelector('#namediv-preview') as HTMLElement
+			).style.backgroundColor = gClient.user.color;
+			(
+				document.querySelector('#rename .rename-hex') as HTMLInputElement
+			).value = gClient.user.color;
+			if (gClient.user.tag) {
+				switch (typeof gClient.user.tag) {
+					case 'object':
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).innerText = gClient.user.tag.text;
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.backgroundColor = gClient.user.tag.color;
+						break;
+					case 'string':
+						function tagColor(tag: any): string {
+							if (typeof tag === 'object') return tag.color;
+							if (tag === 'BOT') return '#55f';
+							if (tag === 'OWNER') return '#a00';
+							if (tag === 'ADMIN') return '#f55';
+							if (tag === 'MOD') return '#0a0';
+							if (tag === 'MEDIA') return '#f5f';
+							return '#777';
+						}
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).innerText = gClient.user.tag;
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.backgroundColor = tagColor(gClient.user.tag);
+						break;
+					case 'undefined':
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.display = 'none';
+						break;
+				}
+			} else {
+				(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.display = 'none';
+			}
+		}
+
 		function submit() {
 			const set = {
 				name: (
@@ -263,6 +304,48 @@ export function initModals() {
 			closeModal();
 			gClient.sendArray([{ m: 'userset', set }]);
 		}
+		document.querySelector('#rename input[name=name]').addEventListener('input', () => {
+			// User Name
+			(
+				document.querySelector('#rename .nametext') as HTMLElement
+			).innerText = (
+				document.querySelector('#rename input[name=name]') as HTMLInputElement
+			).value;
+		});
+		document.querySelector('#rename input[name=color]').addEventListener('input', () => {
+			// User Color
+			(
+				document.querySelector('#namediv-preview') as HTMLElement
+			).style.backgroundColor = (
+				document.querySelector('#rename input[name=color]') as HTMLInputElement
+			).value;
+		})
+		document.querySelector('#rename #rename-random-color').addEventListener('click', () => {
+			let newHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+			(document.querySelector('#rename .rename-hex') as HTMLInputElement).value = newHex;
+			(document.querySelector('#namediv-preview') as HTMLElement).style.backgroundColor = newHex;
+			(document.querySelector('#rename input[name=color]') as HTMLInputElement).value = newHex;
+
+		})
+		document.querySelector('#rename .rename-hex').addEventListener('input', () => {
+			let val = (
+				document.querySelector('#rename .rename-hex') as HTMLInputElement
+			).value;
+			let isValidHex = (str: string) => /^#[0-9a-fA-F]{6}$/.test(str);
+
+			if (isValidHex(val)) {
+				(document.querySelector('#rename .rename-hex') as HTMLInputElement).style.color = "#ffffff";
+				(document.querySelector('#namediv-preview') as HTMLElement).style.backgroundColor = val;
+				(document.querySelector('#rename input[name=color]') as HTMLInputElement).value = val;
+			} else {
+				(document.querySelector('#rename .rename-hex') as HTMLInputElement).style.color = "#ff0000"
+				if (val.startsWith("#")) {
+					(document.querySelector('#rename #hexvalidatpr') as HTMLElement).innerText = "Invalid Hex! may start with an #";
+				} else {
+					(document.querySelector('#rename #hexvalidatpr') as HTMLElement).innerText = "Invalid Hex!";
+				}
+			}
+		})
 		document.querySelector('#rename .submit')!.addEventListener('click', () => {
 			submit();
 		});
@@ -276,7 +359,7 @@ export function initModals() {
 				evt.stopPropagation();
 				return false;
 			});
-  })();
+	})();
 
 
 
@@ -333,7 +416,7 @@ export function initModals() {
 			}
 		});
 
-  // Modal background click
+	// Modal background click
 	const modal_bg = document.querySelector('#modal .bg') as HTMLElement;
 	modal_bg.addEventListener('click', (evt: any) => {
 		if (evt.target !== modal_bg) return;
