@@ -517,6 +517,23 @@ export function getParameterByName(
 	return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
+export function showToast(text: string): void {
+	const el = document.createElement('div');
+	el.textContent = text;
+	Object.assign(el.style, {
+		position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+		background: '#222', color: '#fff', padding: '10px 20px', borderRadius: '6px',
+		fontSize: '14px', zIndex: '10000', border: '1px solid #555',
+		boxShadow: '0 2px 12px rgba(0,0,0,0.5)', transition: 'opacity 0.3s',
+	});
+	document.body.appendChild(el);
+	el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, fill: 'forwards' });
+	setTimeout(() => {
+		el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+		setTimeout(() => el.remove(), 300);
+	}, 2000);
+}
+
 export function getRoomNameFromURL(): string {
 	let channel_id = decodeURIComponent(window.location.pathname);
 	if (channel_id.substr(0, 1) === '/') channel_id = channel_id.substr(1);

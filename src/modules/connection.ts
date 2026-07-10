@@ -140,6 +140,8 @@ export function initConnection(): Client {
 			}
 			document.removeEventListener('click', user_interact);
 			getPiano().audio.resume();
+			(window as any).__motdDismissed = true;
+			setTimeout(() => (window as any).__checkChatContrast?.(), 500);
 		};
 		document.addEventListener('click', user_interact);
 		if (gClient.permissions.clearChat) {

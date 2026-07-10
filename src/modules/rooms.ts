@@ -325,6 +325,10 @@ export function initRooms(): void {
 		gClient.sendArray([{ m: '+ls' }]);
 	});
 
+	function closeRoomList(): void {
+		closeModal();
+	}
+
 	// Delegate clicks inside room-list entries
 	document.getElementById('room-list')?.addEventListener('click', (evt: any) => {
 		const target = evt.target as HTMLElement;
@@ -332,21 +336,23 @@ export function initRooms(): void {
 		if (info) {
 			const roomName = info.getAttribute('roomname');
 			if (!roomName) return;
-			closeModal();
-			gClient.sendArray([{ m: '-ls' }]);
+			closeRoomList();
 			if (!evt.ctrlKey) changeRoom(gClient, roomName, 'right');
 			else window.open(`?c=${roomName}`);
 			return;
 		}
 		if (target.closest('.new')) {
-			closeModal();
-			gClient.sendArray([{ m: '-ls' }]);
+			closeRoomList();
 			openModal('#new-room', 'input[name=name]');
 		}
 	});
-	document.getElementById('room-list-close')?.addEventListener('click', () => {
-		closeModal();
-		gClient.sendArray([{ m: '-ls' }]);
+	document.getElementById('room-list-close')?.addEventListener('click', closeRoomList);
+
+	// Send -ls when room-list modal closes via any method (bg click, ESC, etc.)
+	document.addEventListener('modalclose', (e: any) => {
+		if (e.detail?.target?.id === 'room-list') {
+			gClient.sendArray([{ m: '-ls' }]);
+		}
 	});
 
 	window.addEventListener('popstate', (evt: any) => {

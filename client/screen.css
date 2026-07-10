@@ -1325,6 +1325,7 @@ input[type="range"]:hover {
 
 #chat li .message {
   margin-right: 6px;
+  font-weight: 700;
 }
 
 #chat li .quote {

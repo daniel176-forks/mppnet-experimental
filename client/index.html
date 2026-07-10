@@ -62,6 +62,14 @@
   </div>
   <div id="chat">
     <ul translated></ul>
+    <div id="reply-bar" style="display:none;">
+      <div id="reply-bar-line"></div>
+      <div id="reply-bar-content">
+        <span id="reply-bar-name"></span>
+        <span id="reply-bar-text"></span>
+      </div>
+      <span id="reply-bar-cancel">✕</span>
+    </div>
     <input id="chat-input" placeholder="You can chat with this thing." maxlength="512" autocomplete="off" />
   </div>
 
@@ -300,6 +308,14 @@
         </div>
         <div id="room-list-entries"></div>
         <div id="room-list-close">Close</div>
+      </div>
+      <div id="lowcontrast-warning" class="dialog" style="display:none;">
+        <p style="font-size:16px;margin:8px 0;">Some name colors are hard to read</p>
+        <p style="font-size:13px;color:#aaa;margin:4px 0;">Would you like to turn off chat colors?</p>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <div id="lowcontrast-yes" class="ugly-button" style="flex:1;text-align:center;background:#2d5a2d;">Yes</div>
+          <div id="lowcontrast-no" class="ugly-button" style="flex:1;text-align:center;">No</div>
+        </div>
       </div>
 
     </div>

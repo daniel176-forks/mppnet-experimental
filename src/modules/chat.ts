@@ -4,6 +4,7 @@ import {
 	parseContent,
 	fadeIn,
 	fadeOut,
+	showToast,
 } from '../util/util';
 import { Notification } from '../libs/Notification';
 import { getClient, state } from '../util/state';
@@ -27,6 +28,67 @@ import {
 } from './connection';
 import type { ChatMessage } from '../types';
 import { i18next } from '../util/translations';
+import { openModal, closeModal } from '../util/modal';
+
+const BG_LUMINANCE = 0.05;
+let lowContrastCount = 0;
+let lowContrastShown = false;
+let lowContrastToastShown = false;
+
+function parseColorToRgb(color: string): [number, number, number] | null {
+	const m = color.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+	if (m) return [+m[1], +m[2], +m[3]];
+	const hex = color.replace('#', '');
+	if (/^[0-9a-f]{6}$/i.test(hex)) return [parseInt(hex.substring(0, 2), 16), parseInt(hex.substring(2, 4), 16), parseInt(hex.substring(4, 6), 16)];
+	return null;
+}
+
+function getLuminance(r: number, g: number, b: number): number {
+	const [rs, gs, bs] = [r, g, b].map(v => {
+		v /= 255;
+		return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+	});
+	return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+(window as any).__checkChatContrast = function(): void {
+	if (lowContrastShown || settings.noChatColors) return;
+	document.querySelectorAll('#chat ul li').forEach(li => {
+		if (lowContrastShown) return;
+		const els = li.querySelectorAll('.name, .name2, .message');
+		els.forEach(el => {
+			if (lowContrastShown) return;
+			const color = (el as HTMLElement).style.color;
+			if (color && color !== 'white' && color !== '#fff' && color !== '#ffffff') {
+				checkContrast(color);
+			}
+		});
+	});
+};
+
+function checkContrast(color: string): void {
+	if (lowContrastShown || settings.noChatColors) return;
+	const rgb = parseColorToRgb(color);
+	if (!rgb) return;
+	const l = getLuminance(rgb[0], rgb[1], rgb[2]);
+	const lighter = Math.max(l, BG_LUMINANCE);
+	const darker = Math.min(l, BG_LUMINANCE);
+	const ratio = (lighter + 0.05) / (darker + 0.05);
+	if (ratio < 3) {
+		if (localStorage.lowContrastAcknowledged === 'true') {
+			if (!lowContrastToastShown) {
+				lowContrastToastShown = true;
+				showToast('Seems like the chat contrast is kinda messy, if you mind fixing it, go ahead on Settings → No Chat Colors');
+			}
+			return;
+		}
+		lowContrastCount++;
+		if (lowContrastCount >= 5) {
+			lowContrastShown = true;
+			openModal('#lowcontrast-warning');
+		}
+	}
+}
 
 function setTag(el: HTMLElement, participant: any): void {
 	const tag = participant?.tag;
@@ -74,6 +136,37 @@ export function initChat(): Chat {
 	};
 
 	const messageCache: ChatMessage[] = [];
+
+	function getBackgroundBrightness(): number {
+		const client = getClient();
+		const roomColor = client.channel?.settings?.color;
+		const hex = (roomColor || '#220022').replace('#', '');
+		if (hex.length < 6) return 0.05;
+		const r = parseInt(hex.substring(0, 2), 16);
+		const g = parseInt(hex.substring(2, 4), 16);
+		const b = parseInt(hex.substring(4, 6), 16);
+		if (isNaN(r) || isNaN(g) || isNaN(b)) return 0.05;
+		const [rs, gs, bs] = [r, g, b].map(v => {
+			v /= 255;
+			return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+		});
+		return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+	}
+
+	function refreshAllMessageColors(): void {
+		const noColors = settings.noChatColors;
+		const textColor = noColors ? (getBackgroundBrightness() > 0.5 ? '#000' : '#fff') : null;
+		document.querySelectorAll('#chat ul li').forEach(li => {
+			li.querySelectorAll('.name, .name2, .message').forEach(el => {
+				const el2 = el as HTMLElement;
+				if (noColors) {
+					el2.style.color = textColor!;
+				} else if (el2.dataset.msgColor) {
+					el2.style.color = el2.dataset.msgColor;
+				}
+			});
+		});
+	}
 
 	const chat: Chat = {
 		isShown: true,
@@ -482,23 +575,37 @@ export function initChat(): Chat {
 				if (!settings.noChatColors)
 					Object.assign((li.querySelector('.message') as HTMLElement).style, {
 						color: msg.p.color || 'white',
-					});
+						});
 				if (!settings.noChatColors)
 					Object.assign((li.querySelector('.name') as HTMLElement).style, {
 						color: msg.p.color || 'white',
-					});
+						});
 				(li.querySelector('.name') as HTMLElement).textContent =
 					msg.p.name + ':';
 				setTag(li.querySelector('.chat-tag') as HTMLElement, msg.p);
 				if (!settings.noChatColors)
 					Object.assign((li.querySelector('.message') as HTMLElement).style, {
 						color: msg.p.color || 'white',
-					});
+						});
 				if (settings.showIdsInChat)
 					(li.querySelector('.id') as HTMLElement).textContent =
 						msg.p._id.substring(0, 6);
 				if (settings.showChatTooltips) li.title = msg.p._id;
 			}
+
+			// when noChatColors is on, apply dynamic color based on background
+			if (settings.noChatColors) {
+				const ncColor = getBackgroundBrightness() > 0.5 ? '#000' : '#fff';
+				li.querySelectorAll('.name, .name2, .message').forEach(el => {
+					(el as HTMLElement).style.color = ncColor;
+				});
+			}
+
+			// store original colors for toggling
+			li.querySelectorAll('.name, .name2, .message').forEach(el => {
+				const color = (el as HTMLElement).style.color;
+				if (color) (el as HTMLElement).dataset.msgColor = color;
+			});
 
 			// Adds copying _ids on click in chat
 			li.querySelector('.id')?.addEventListener('click', () => {
@@ -580,6 +687,12 @@ export function initChat(): Chat {
 				}
 			});
 
+			// check contrast
+			if (!settings.noChatColors && (window as any).__motdDismissed) {
+				const color = msg.m === 'dm' ? msg.sender?.color : msg.p?.color;
+				if (color) checkContrast(color);
+			}
+
 			// put list element in chat
 			document.querySelector('#chat ul')!.appendChild(li);
 			messageCache.push(msg);
@@ -616,6 +729,10 @@ export function initChat(): Chat {
 		} else {
 			if (chat.isShown) chat.hide();
 		}
+		lowContrastCount = 0;
+		lowContrastShown = false;
+		lowContrastToastShown = false;
+		refreshAllMessageColors();
 	});
 	gClient.on('disconnect', () => {});
 	gClient.on('c', (msg: any) => {
@@ -625,6 +742,7 @@ export function initChat(): Chat {
 				chat.receive(msg.c[i]);
 			}
 		}
+		refreshAllMessageColors();
 	});
 	gClient.on('a', (msg: any) => {
 		chat.receive(msg);
@@ -705,6 +823,24 @@ export function initChat(): Chat {
 			}
 		},
 	);
+
+	// Listen for noChatColors toggle from settings UI
+	document.addEventListener('nochatcolorschange', refreshAllMessageColors);
+
+	// Low-contrast warning modal
+	document.getElementById('lowcontrast-yes')?.addEventListener('click', () => {
+		localStorage.lowContrastAcknowledged = 'true';
+		settings.noChatColors = true;
+		localStorage.noChatColors = 'true';
+		refreshAllMessageColors();
+		closeModal();
+		showToast('Chat colors are now off. You can change this later in Client Settings → Chat.');
+	});
+	document.getElementById('lowcontrast-no')?.addEventListener('click', () => {
+		localStorage.lowContrastAcknowledged = 'true';
+		closeModal();
+		showToast('You can turn off chat colors later in Client Settings → Chat.');
+	});
 
 	state.chat = chat;
 	return chat;

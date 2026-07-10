@@ -71,6 +71,7 @@ export function initSettingsUI(): void {
 					setting.classList.toggle('enabled');
 					localStorage.noChatColors = setting.classList.contains('enabled');
 					settings.noChatColors = setting.classList.contains('enabled');
+					document.dispatchEvent(new CustomEvent('nochatcolorschange', { detail: { enabled: settings.noChatColors } }));
 				};
 				html.appendChild(setting);
 			})();
@@ -97,6 +98,7 @@ export function initSettingsUI(): void {
 					} else {
 						setBackgroundColorToDefault();
 					}
+					document.dispatchEvent(new CustomEvent('nochatcolorschange'));
 				};
 				html.appendChild(setting);
 			})();
@@ -381,8 +383,10 @@ export function initSettingsUI(): void {
 						true,
 						html,
 						() => {
-							settings.noChatColors = !settings.noChatColors;
+							const cb = document.getElementById('no-chat-colors') as HTMLInputElement;
+							settings.noChatColors = cb.checked;
 							localStorage.noChatColors = settings.noChatColors;
+							document.dispatchEvent(new CustomEvent('nochatcolorschange'));
 						},
 					);
 
@@ -576,6 +580,7 @@ export function initSettingsUI(): void {
 							} else {
 								setBackgroundColorToDefault();
 							}
+							document.dispatchEvent(new CustomEvent('nochatcolorschange'));
 						},
 					);
 
