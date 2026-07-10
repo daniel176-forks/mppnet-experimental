@@ -619,6 +619,20 @@ export function initKeyboard(): void {
 				if (part.cursorDiv) part.cursorDiv.style.display = 'block';
 			});
 		}
+		// Favorite
+		const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+		const isFav = favorites.some((f: any) => f.id === part._id);
+		if (isFav) {
+			createMenuItem(i18next.t('Remove Favorite'), () => {
+				const updated = favorites.filter((f: any) => f.id !== part._id);
+				localStorage.setItem('favorites', JSON.stringify(updated));
+			});
+		} else {
+			createMenuItem(i18next.t('Add Favorite'), () => {
+				favorites.push({ id: part._id, name: part.name, color: part.color, tag: part.tag });
+				localStorage.setItem('favorites', JSON.stringify(favorites));
+			});
+		}
 		// Mention
 		createMenuItem(i18next.t('Mention'), () => {
 			(document.getElementById('chat-input') as HTMLInputElement).value +=

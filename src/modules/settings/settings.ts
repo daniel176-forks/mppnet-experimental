@@ -20,6 +20,8 @@ export class Settings {
 	cancelDMs: boolean;
 	hasSeenDMWarning: boolean;
 	snowflakes: boolean;
+	showRoomBotCounts: boolean;
+	showOverlay: boolean;
 	disableMIDIDrumChannel: boolean;
 	testMode: boolean;
 	seeOwnCursor: boolean;
@@ -58,6 +60,8 @@ export class Settings {
 		this.hasSeenDMWarning = localStorage.hasSeenDMWarning === 'true';
 		this.snowflakes =
 			new Date().getMonth() === 11 && localStorage.snowflakes !== 'false';
+		this.showRoomBotCounts = localStorage.showRoomBotCounts !== 'false';
+		this.showOverlay = localStorage.showOverlay !== 'false';
 		this.disableMIDIDrumChannel = localStorage.disableMIDIDrumChannel
 			? localStorage.disableMIDIDrumChannel === 'true'
 			: true;

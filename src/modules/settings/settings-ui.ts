@@ -642,6 +642,32 @@ export function initSettingsUI(): void {
 					);
 
 					createSetting(
+						'show-room-bot-counts',
+						'Show bot counts in room list',
+						settings.showRoomBotCounts,
+						true,
+						html,
+						() => {
+							settings.showRoomBotCounts = !settings.showRoomBotCounts;
+							localStorage.showRoomBotCounts = settings.showRoomBotCounts;
+						},
+					);
+
+					createSetting(
+						'show-overlay',
+						'Show utility overlay',
+						settings.showOverlay,
+						true,
+						html,
+						() => {
+							settings.showOverlay = !settings.showOverlay;
+							localStorage.showOverlay = settings.showOverlay;
+							const overlay = document.getElementById('overlay');
+							if (overlay) overlay.style.display = settings.showOverlay ? '' : 'none';
+						},
+					);
+
+					createSetting(
 						'hide-bot-users',
 						'Hide all bots',
 						settings.hideBotUsers,

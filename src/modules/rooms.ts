@@ -8,6 +8,64 @@ import { setKeyboardTimeout, setKeyboardNotification } from '../modules/keyboard
 import { Client } from '../libs/Client';
 let gHistoryDepth = 0;
 
+interface MostPopularRoom {
+	name: string;
+	count: number;
+	limit: number;
+}
+
+let mostPopularRoom: MostPopularRoom = { name: 'lobby', count: 0, limit: 20 };
+let roomBotCounts: { [roomId: string]: number } = {};
+
+function getUserTag(user: any): { text: string; color: string } | null {
+	if (!user.tag) return null;
+	const tagText = typeof user.tag === 'object' ? user.tag.text : user.tag;
+	const tagColor = typeof user.tag === 'object' ? user.tag.color : null;
+	if (!tagText) return null;
+	const color =
+		tagColor ||
+		({
+			BOT: '#55f',
+			OWNER: '#a00',
+			ADMIN: '#f55',
+			MOD: '#0a0',
+			MEDIA: '#f5f',
+		} as any)[tagText] ||
+		'#777';
+	return { text: tagText, color };
+}
+
+function updateBotCountsFromApi(): void {
+	fetch('/api/listUsers')
+		.then(r => r.json())
+		.then((users: any[]) => {
+			const counts: { [roomId: string]: number } = {};
+			const humanCounts: { [roomId: string]: number } = {};
+			users.forEach((u: any) => {
+				const tag = getUserTag(u);
+				const rooms = u.rooms || (u.room ? [u.room] : ['lobby']);
+				rooms.forEach((room: string) => {
+					if (tag && tag.text === 'BOT') {
+						counts[room] = (counts[room] || 0) + 1;
+					} else {
+						humanCounts[room] = (humanCounts[room] || 0) + 1;
+					}
+				});
+			});
+			roomBotCounts = counts;
+			let maxCount = 0;
+			let mostPopular = 'lobby';
+			Object.keys(humanCounts).forEach(room => {
+				if (humanCounts[room] > maxCount) {
+					maxCount = humanCounts[room];
+					mostPopular = room;
+				}
+			});
+			mostPopularRoom = { name: mostPopular, count: maxCount, limit: 20 };
+		})
+		.catch(() => {});
+}
+
 export function changeRoom(
     client: Client,
 		name: string,
@@ -70,6 +128,9 @@ export function initRooms(): void {
 		'volume-slider',
 	) as HTMLInputElement;
 
+	updateBotCountsFromApi();
+	setInterval(updateBotCountsFromApi, 30000);
+
 	let gKnowsYouCanUseKeyboard = false;
 	if (localStorage && localStorage.knowsYouCanUseKeyboard)
 		gKnowsYouCanUseKeyboard = true;
@@ -123,9 +184,15 @@ export function initRooms(): void {
 		else info.classList.remove('not-visible');
 	});
 	gClient.on('ls', (ls: any) => {
-		for (const i in ls.u) {
-			if (!ls.u.hasOwnProperty(i)) continue;
-			const room = ls.u[i];
+		const rooms = (ls.u as any[]).slice().sort((a, b) => {
+			const botA = settings.showRoomBotCounts ? roomBotCounts[a._id] || 0 : 0;
+			const botB = settings.showRoomBotCounts ? roomBotCounts[b._id] || 0 : 0;
+			const humanA = a.count - botA;
+			const humanB = b.count - botB;
+			if (humanB !== humanA) return humanB - humanA;
+			return b.count - a.count;
+		});
+		for (const room of rooms) {
 			let info = Array.from(
 				document.querySelectorAll('#room .more .info'),
 			).find(
@@ -134,17 +201,35 @@ export function initRooms(): void {
 			if (!info) {
 				info = document.createElement('div');
 				info.className = 'info';
+				if (room._id === mostPopularRoom.name) info.classList.add('cheez');
 				info.setAttribute('roomname', room._id);
 				info.setAttribute('roomid', room.id);
 				document.querySelector('#room .more')!.appendChild(info);
 			}
 			info.setAttribute('translated', '');
-			info.textContent =
+			const botCount = settings.showRoomBotCounts
+				? roomBotCounts[room._id] || 0
+				: 0;
+			const botHtml =
+				botCount > 0
+					? '<span class="nametag" style="background:#55f;margin-left:4px;">' +
+						botCount +
+						' BOTS</span>'
+					: '';
+			let roomName = room._id;
+			if (botCount > 0 && roomName.length > 25)
+				roomName = roomName.substring(0, 22) + '...';
+			info.innerHTML =
 				room.count +
 				'/' +
 				('limit' in room.settings ? room.settings.limit : 20) +
 				' ' +
-				room._id;
+				roomName +
+				botHtml;
+			if (room.count >= 10) info.style.backgroundColor = '#4a4';
+			else if (room.count >= 5) info.style.backgroundColor = '#494';
+			else if (room.count >= 3) info.style.backgroundColor = '#464';
+			else info.style.color = '';
 			if (room.settings.lobby) info.classList.add('lobby');
 			else info.classList.remove('lobby');
 			if (!room.settings.chat) info.classList.add('no-chat');

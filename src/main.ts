@@ -23,6 +23,7 @@ import { i18next, i18nextify, start } from './util/translations';
 import { closeModal, getModal, openModal } from './util/modal';
 import { EventEmitter } from './util/util';
 import { initModals } from 'modules/modals';
+import { initUserlist } from 'modules/userlist';
 import { Client } from 'libs/Client';
 
 if (location.host === 'multiplayerpiano.com') {
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initMidi();
 	initSynth();
 	initSettingsUI();
+	initUserlist();
 
 	if (window !== top) {
 		alert(

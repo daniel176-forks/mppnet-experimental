@@ -239,7 +239,19 @@ export function initConnection(): Client {
 
 		updateLabels(part);
 
-		let hasOtherDiv = false;
+		const favoritesList: Array<{ id: string }> = JSON.parse(
+			localStorage.getItem('favorites') || '[]',
+		);
+		const isFavorited = favoritesList.some(f => f.id === part._id);
+		if (isFavorited && part.nameDiv) {
+			part.nameDiv.classList.add('favorited');
+			const favTag = document.createElement('div');
+			favTag.className = 'favoritetag';
+			favTag.textContent = 'FAV';
+			part.nameDiv.appendChild(favTag);
+		}
+
+		let hasOtherDiv = isFavorited;
 		if (part.vanished && part.nameDiv) {
 			hasOtherDiv = true;
 			const vanishDiv = document.createElement('div');
