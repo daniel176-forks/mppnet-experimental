@@ -12,6 +12,7 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 // Build date: 2026-06-03T03:12:25.959Z
+window.onload = (() => {
 var zN=Object.defineProperty;var SN=($)=>$;function NN($,i){this[$]=SN.bind(null,i)}var Z$=($,i)=>{for(var I in i)zN($,I,{get:i[I],enumerable:!0,configurable:!0,set:NN.bind(i,I)})};var o6={};Z$(o6,{uncachePartHat:()=>j6,setPartHat:()=>Bi,serverAddress:()=>Tv,removeHat:()=>o1,hatCache:()=>uv,getPartHat:()=>Qv,getHatList:()=>f6,getHatImage:()=>GN,getHatBaseURL:()=>Cv,getCurrentHat:()=>T$,clearHatCache:()=>x6,changeHat:()=>Ai,applyHat:()=>Mg});/*!
  * jQuery JavaScript Library v4.0.0
  * https://jquery.com/
@@ -148,3 +149,4 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         <div class="ugly-button clear-cache" style="flex-shrink: 0;">Clear Cache</div>
     </div>
 </div>`);function mz($){h("#modal #modals #hats .hat-tile").removeClass("selected"),h(`#modal #modals #hats .hat-tile[data-hat-id="${$}"]`).addClass("selected")}h("#modal #modals #hats").on("click",".hat-tile",function(){mz(h(this).data("hat-id"))});h("#modal #modals #hats button.submit").on("click",()=>{let $=h("#modal #modals #hats .hat-tile.selected").data("hat-id")??"";Ai($),MPP.modal.closeModal()});h("#modal #modals #hats .clear-cache").on("click",()=>{x6()});var U0="hat_";MPP.client.on("custom",($)=>{let i={...$};if(typeof i.data!=="object")return;if(typeof i.data.m!=="string")return;if(i.data.evtn=i.data.m.substring(U0.length).trim(),delete i.data.m,!tz(i.data))return;jv.emit(i.data,i)});MPP.client.on("participant added",($)=>{Qv($._id)});MPP.client.on("participant removed",($)=>{j6($._id)});MPP.client.on("participant update",($)=>{let i=Qv($._id);if(!i)return;Mg($._id,i)});MPP.client.on("ch",($)=>{Ai(T$())});MPP.client.on("c",async($)=>{if(typeof $.c!=="object")return;if(!Array.isArray)return;for(let i=0;i<$.c.length;i++)try{let I=$.c[i];if(I.m=="dm")continue;let r=MPP.client.findParticipantById(I.p.id);if(!r)continue;let v=Qv(r._id);if(!v)continue;let _=`<span class="chat-hat" style="content: url(${Cv(v)});"></span>`,D=h(`#chat ul li#msg-${I.id}`);h(D).children(".name").before(_)}catch(I){console.error(I);continue}});MPP.client.on("a",($)=>{try{let i=MPP.client.findParticipantById($.p.id);if(!i)return;let I=Qv(i._id);if(!I)return;let r=`<span class="chat-hat" style="content: url(${Cv(I)});"></span>`,v=h(`#chat ul li#msg-${$.id}`);h(v).children(".name").before(r)}catch(i){console.error(i)}});if(MPP.client.channel)Ai(T$());MPP.hats=o6;
+})
