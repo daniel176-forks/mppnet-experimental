@@ -673,6 +673,20 @@ export function initSettingsUI(): void {
 					);
 
 					createSetting(
+						'count-bots',
+						'Count bots as people',
+						settings.showOverlay,
+						true,
+						html,
+						() => {
+							const client = getClient();
+							settings.countBots = !settings.countBots;
+							localStorage.countBots = settings.countBots;
+							client.emit('count', (Object.keys(client.ppl).filter(v => client.ppl[v].tag?.text !== "BOT")).length);
+						},
+					);
+
+					createSetting(
 						'hide-bot-users',
 						'Hide all bots',
 						settings.hideBotUsers,

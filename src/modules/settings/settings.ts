@@ -26,6 +26,7 @@ export class Settings {
 	testMode: boolean;
 	seeOwnCursor: boolean;
 	midiVolumeTest: boolean;
+	countBots: boolean;
 
 	constructor() {
 		const hash = window.location.hash || '';
@@ -61,6 +62,7 @@ export class Settings {
 		this.snowflakes =
 			new Date().getMonth() === 11 && localStorage.snowflakes !== 'false';
 		this.showRoomBotCounts = localStorage.showRoomBotCounts !== 'false';
+		this.countBots = localStorage.countBots === 'true';
 		this.showOverlay = localStorage.showOverlay === 'true';
 		this.disableMIDIDrumChannel = localStorage.disableMIDIDrumChannel
 			? localStorage.disableMIDIDrumChannel === 'true'

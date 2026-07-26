@@ -97,19 +97,24 @@ export function initConnection(): Client {
 	});
 
 	gClient.on('count', (count: number) => {
+		const realPlayers = (Object.keys(gClient.ppl).filter(v => gClient.ppl[v].tag?.text !== "BOT")).length;
+		let amnt = count;
+		if(settings.countBots == false) {
+			amnt = realPlayers
+		}
 		if (count > 0) {
 			const statusEl = document.getElementById('status')!;
 			statusEl.innerHTML =
 				'<span class="number" translated>' +
-				count +
+				amnt +
 				'</span> ' +
-				i18next.t('people are playing', { count });
+				i18next.t('people are playing', { amnt });
 			if (!tabIsActive) {
 				if (youreMentioned || youreReplied) {
 					return;
 				}
 			}
-			document.title = 'Piano (' + count + ')';
+			document.title = 'Piano (' + amnt + ')';
 		} else {
 			document.title = 'Multiplayer Piano';
 		}
