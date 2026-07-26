@@ -242,11 +242,13 @@ export function initRooms(): void {
 		const botCount = settings.showRoomBotCounts
 			? roomBotCounts[room._id] || 0
 			: 0;
+		const botString = (botCount > 1) ? 'BOTS' : 'BOT';
 		const botHtml =
+			
 			botCount > 0
 				? '<span class="nametag" style="background:#55f;margin-left:4px;margin-top:4px;">' +
 					botCount +
-					' BOT'+(botCount > 1) ? 'S' : ''+'</span>'
+					' '+botString+'</span>'
 				: '';
 		let roomName = room._id;
 		if (botCount > 0 && roomName.length > 25)
