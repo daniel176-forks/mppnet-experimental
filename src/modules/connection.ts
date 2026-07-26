@@ -79,8 +79,13 @@ export function initConnection(): Client {
 		youreMentioned = false;
 		youreReplied = false;
 		const count = Object.keys(gClient.ppl).length;
+		const realPlayers = (Object.keys(gClient.ppl).filter(v => gClient.ppl[v].tag?.text !== "BOT")).length;
+		let amnt = count;
+		if(settings.countBots == false) {
+			amnt = realPlayers
+		}
 		if (count > 0) {
-			document.title = 'Piano (' + count + ')';
+			document.title = 'Piano (' + amnt + ')';
 		} else {
 			document.title = 'Multiplayer Piano';
 		}
