@@ -675,14 +675,28 @@ export function initSettingsUI(): void {
 					createSetting(
 						'count-bots',
 						'Count bots as people',
-						settings.showOverlay,
+						settings.countBots,
 						true,
 						html,
 						() => {
 							const client = getClient();
 							settings.countBots = !settings.countBots;
 							localStorage.countBots = settings.countBots;
-							client.emit('count', (Object.keys(client.ppl).filter(v => client.ppl[v].tag?.text !== "BOT")).length);
+							
+							const count = Object.keys(client.ppl).length;
+							const realPlayers = (Object.keys(client.ppl).filter(v => client.ppl[v].tag?.text !== "BOT")).length;
+							let amnt = count;
+							if(settings.countBots == false) {
+								amnt = realPlayers
+							}
+
+							const statusEl = document.getElementById('status')!;
+							statusEl.innerHTML =
+								'<span class="number" translated>' +
+								amnt +
+								'</span> ' +
+								i18next.t('people are playing', { amnt });
+							document.title = 'Piano (' + amnt + ')';
 						},
 					);
 
