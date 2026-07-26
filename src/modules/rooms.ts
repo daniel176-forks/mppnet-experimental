@@ -39,7 +39,7 @@ function getUserTag(user: any): { text: string; color: string } | null {
 }
 
 function updateBotCountsFromApi(): void {
-	fetch('/api/listUsers')
+	fetch('https://mppnet.r1blox.xyz/listUsers')
 		.then(r => r.json())
 		.then((users: any[]) => {
 			const counts: { [roomId: string]: number } = {};

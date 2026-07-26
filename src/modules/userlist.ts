@@ -68,7 +68,7 @@ function updateUserList(): void {
 		apiLabel.style.color = '';
 	}
 	if (apiSelector.value === 'daniel176') {
-		fetch('/api/listUsers')
+		fetch('https://mppnet.r1blox.xyz/listUsers')
 			.then(r => r.json())
 			.then((users: any[]) => {
 				if (apiLabel) {
@@ -223,7 +223,7 @@ function updateUserList(): void {
 }
 
 function updateIgnoredRoomsList(): void {
-	fetch('/api/noIndexList')
+	fetch('https://mppnet.r1blox.xyz/noIndexList')
 		.then(r => r.json())
 		.then((data: any) => {
 			if (data.m === 'present' && data.rooms) {
@@ -256,7 +256,7 @@ function updateIgnoredRoomsList(): void {
 
 function updateMostPopularRoom(): void {
 	const hideBots = (document.getElementById('hide-bots') as HTMLInputElement)?.checked ?? true;
-	fetch('/api/listUsers')
+	fetch('https://mppnet.r1blox.xyz/listUsers')
 		.then(r => r.json())
 		.then((users: any[]) => {
 			let filtered = users;
@@ -339,7 +339,7 @@ function renderFavorites(): void {
 		lastSeenDiv.textContent = 'Loading...';
 		div.appendChild(lastSeenDiv);
 
-		fetch('/api/getUserData?userId=' + fav.id)
+		fetch('https://mppnet.r1blox.xyz/getUserData?userId=' + fav.id)
 			.then(r => r.json())
 			.then((data: any) => {
 				if (
@@ -379,7 +379,7 @@ function renderFavorites(): void {
 
 		div.onclick = () => {
 			if ((window as any).MPP?.client) {
-				fetch('/api/getUserData?userId=' + fav.id)
+				fetch('https://mppnet.r1blox.xyz/getUserData?userId=' + fav.id)
 					.then(r => r.json())
 					.then((data: any) => {
 						if (
@@ -415,7 +415,7 @@ function renderFavorites(): void {
 		container.appendChild(div);
 	};
 
-	fetch('/api/userHistory')
+	fetch('https://mppnet.r1blox.xyz/userHistory')
 		.then(r => r.json())
 		.then((history: any) => {
 			favorites.forEach((fav, index) => {
@@ -535,7 +535,7 @@ export function initUserlist(): void {
 				if (!q) return;
 				const responseEl = document.querySelector('.api-asky-response') as HTMLElement;
 				if (responseEl) responseEl.textContent = 'Thinking...';
-				fetch('/api/apiAsk?q=' + encodeURIComponent(q))
+				fetch('https://mppnet.r1blox.xyz/apiAsk?q=' + encodeURIComponent(q))
 					.then(r => r.json())
 					.then((data: any) => {
 						if (responseEl) {
